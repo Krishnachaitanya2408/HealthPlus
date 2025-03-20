@@ -1,9 +1,11 @@
 import { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { authContext } from "../context/AuthContext";
+import { getToken } from "../utils/auth";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-    const { token, role } = useContext(authContext);
+    const { role } = useContext(authContext);
+    const token = getToken();
 
     const isAllowed = allowedRoles.includes(role);
     const accessibleRoute =

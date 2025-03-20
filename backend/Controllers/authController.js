@@ -90,14 +90,17 @@ export const login = async (req, res) => {
         // Generate token
         const token = generateToken(user);
 
-        const { password: userPassword, role, ...rest } = user._doc;
+        const { password: userPassword, ...rest } = user._doc;
 
         res.status(200).json({
             status: true,
             message: "Successfully logged in",
             token,
-            data: { ...rest },
-            role,
+            data: { 
+                ...rest,
+                photo: rest.photo || null  // Ensure photo field is explicitly handled
+            },
+            role: rest.role,
         });
     } catch (err) {
         console.error(err);

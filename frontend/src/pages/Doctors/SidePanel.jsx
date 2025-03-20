@@ -2,31 +2,52 @@ import convertTime from "../../utils/convertTime";
 import { BASE_URL } from "./../../config";
 import { token } from "./../../config";
 import { toast } from "react-toastify";
+import { useState, useContext } from 'react';
+import { authContext } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SidePanel = ({doctorId, ticketPrice, timeSlots}) => {
+  const [loading, setLoading] = useState(false);
+  const { token: authToken, role } = useContext(authContext);
+  const navigate = useNavigate();
 
   const bookingHandler = async () => {
+    if(!authToken) {
+      return navigate('/login');
+    }
+    
+    if(role === 'doctor') {
+      return toast.error('Doctors cannot book appointments');
+    }
+
     try {
+      setLoading(true);
       const res = await fetch(`${BASE_URL}/bookings/checkout-session/${doctorId}`, {
         method: 'post',
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${authToken}`, // Use token from context
+          'Content-Type': 'application/json'
         }
       });
+
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message + " Please try again");
+        throw new Error(data.message || "Something went wrong");
       }
 
-      if (data.session.url) {
+      if (data.session && data.session.url) {
         window.location.href = data.session.url;
+      } else {
+        throw new Error("No checkout URL received");
       }
+      
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
   };
-
 
   return (
     <div className="shadow-panelShadow p-3 lg:p-5 rounded-md">
@@ -56,7 +77,15 @@ const SidePanel = ({doctorId, ticketPrice, timeSlots}) => {
         </ul>
       </div>
 
-      <button onClick={bookingHandler} className="btn px-2 w-full rounded-md">Book Appointment</button>
+      <button
+        onClick={bookingHandler}
+        disabled={loading}
+        className={`w-full px-2 btn ${loading ? 'opacity-75 cursor-not-allowed' : 'hover:bg-primaryColor/90 active:scale-95'} 
+        transition-all duration-200 hover:shadow-md bg-primaryColor text-white text-[18px] 
+        leading-[30px] rounded-lg px-4 py-3`}
+      >
+        {loading ? "Processing..." : "Book Appointment"}
+      </button>
     </div>
   );
 };

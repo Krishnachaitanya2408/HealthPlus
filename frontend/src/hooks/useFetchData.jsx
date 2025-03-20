@@ -1,39 +1,43 @@
-import { useEffect, useState } from 'react';
-import { token } from '../config';
+import { useEffect, useState, useCallback } from 'react'
+import { getToken } from '../utils/auth'
 
 const useFetchData = (url) => {
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [data, setData] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+
+    const fetchData = useCallback(async () => {
+        setLoading(true)
+        try {
+            const res = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${getToken()}`
+                }
+            })
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch: ${res.status}`)
+            }
+
+            const result = await res.json()
+            setData(result.data)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }, [url])
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setError(null);
+        fetchData()
+    }, [fetchData])
 
-            try {
-                const res = await fetch(url, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+    return {
+        data,
+        loading,
+        error,
+        refetch: fetchData
+    }
+}
 
-                const result = await res.json();
-
-                if (!res.ok) {
-                    throw new Error(result.message || 'Failed to fetch');
-                }
-
-                setData(result.data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [url]);
-
-    return { data, loading, error };
-};
-
-export default useFetchData;
+export default useFetchData

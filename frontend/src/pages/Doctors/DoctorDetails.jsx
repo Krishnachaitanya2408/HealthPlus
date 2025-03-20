@@ -8,12 +8,14 @@ import useFetchData from "./../../hooks/useFetchData";
 import Loading from "../../components/Loader/Loading";
 import Error from "../../components/Error/Error";
 import { useParams } from "react-router-dom";
+import BookingForm from '../../components/Doctors/BookingForm'
 
 const DoctorDetails = () => {
 
   const [tab, setTab] = useState('about');
   const { id } = useParams();
   const { data: doctor, loading, error } = useFetchData(`${BASE_URL}/doctors/${id}`);
+  const [showBookingForm, setShowBookingForm] = useState(false)
 
   const {
     name,
@@ -100,6 +102,19 @@ const DoctorDetails = () => {
             />
           </div>
         </div>}
+        <button 
+          className="btn" 
+          onClick={() => setShowBookingForm(true)}
+        >
+          Book Appointment
+        </button>
+
+        {showBookingForm && (
+          <BookingForm 
+            doctor={doctor}
+            onClose={() => setShowBookingForm(false)}
+          />
+        )}
       </div>
     </section>
 

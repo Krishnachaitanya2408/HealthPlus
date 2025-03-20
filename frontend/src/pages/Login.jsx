@@ -33,16 +33,23 @@ const Login = () => {
       });
 
       const result = await res.json();
+      
       if (!res.ok) {
         throw new Error(result.message);
       }
 
+      // Ensure user data has required fields
+      const userData = {
+        ...result.data,
+        photo: result.data.photo || null // Ensure photo field exists
+      };
+
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: {
-          user: result.data,
+          user: userData,
           token: result.token,
-          role: result.role,
+          role: result.data.role,
         },
       });
 

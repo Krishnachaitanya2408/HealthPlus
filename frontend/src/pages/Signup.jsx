@@ -15,7 +15,7 @@ const Signup = () => {
         name: "",
         email: '',
         password: '',
-        photo: selectedFile,
+        photo: '',  // Changed from selectedFile to empty string
         gender: '',
         role: "patient",
     });
@@ -28,11 +28,20 @@ const Signup = () => {
 
     const handleFileInputChange = async (event) => {
         const file = event.target.files[0];
-        const data = await uploadImageToCloudinary(file);
-
-        setPreviewURL(data.url);
-        setSelectedFile(data.url);
-        setFormData({ ...formData, photo: data.url });
+        
+        try {
+            setLoading(true);
+            const data = await uploadImageToCloudinary(file);
+            
+            setPreviewURL(data.url);
+            setSelectedFile(data.url);
+            setFormData({ ...formData, photo: data.url }); // Update formData with the photo URL
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            toast.error('Error uploading image. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const submitHandler = async event => {
